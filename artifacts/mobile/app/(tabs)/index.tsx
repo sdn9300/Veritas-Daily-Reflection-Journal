@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
+import { DayRecommendations } from "@/components/DayRecommendations";
 import { MoodPicker } from "@/components/MoodPicker";
 import { VoiceButton } from "@/components/VoiceButton";
 import type { Mood } from "@/context/JournalContext";
@@ -188,6 +189,17 @@ export default function TodayScreen() {
             textAlignVertical="top"
           />
         </Animated.View>
+
+        {todayEntry && !isEdited && (
+          <Animated.View entering={FadeInDown.duration(400).delay(300)} style={styles.section}>
+            <DayRecommendations
+              mood={todayEntry.mood}
+              content={todayEntry.content}
+              reflection={todayEntry.reflection}
+              prompt={todayEntry.prompt}
+            />
+          </Animated.View>
+        )}
       </ScrollView>
 
       <Animated.View

@@ -15,7 +15,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+import { useJournal } from "@/context/JournalContext";
 import { useColors } from "@/hooks/useColors";
+import { exportJournalAsPDF } from "@/utils/export";
 import {
   DEFAULT_REMINDER,
   type ReminderSettings,
@@ -43,10 +45,12 @@ export default function SettingsScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { entries } = useJournal();
 
   const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_REMINDER);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
@@ -98,6 +102,25 @@ export default function SettingsScreen() {
       }
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleExport() {
+    if (entries.length === 0) {
+      Alert.alert("No entries", "Write some journal entries first before exporting.");
+      return;
+    }
+    if (Platform.OS === "web") {
+      Alert.alert("Not available on web", "PDF export works on iOS and Android. Open the app in Expo Go on your phone.");
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportJournalAsPDF(entries);
+    } catch (e) {
+      Alert.alert("Export failed", "Could not export your journal. Please try again.");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -308,6 +331,35 @@ export default function SettingsScreen() {
               {saving ? "Saving…" : saved ? "Reminder saved" : "Save reminder"}
             </Text>
           </TouchableOpacity>
+
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium", marginTop: 32 }]}>
+            EXPORT
+          </Text>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.exportRow}>
+              <View style={styles.exportInfo}>
+                <Feather name="download" size={18} color={colors.mutedForeground} />
+                <View>
+                  <Text style={[styles.toggleTitle, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>
+                    Export as PDF
+                  </Text>
+                  <Text style={[styles.toggleSub, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+                    {entries.length} {entries.length === 1 ? "entry" : "entries"} · beautifully formatted
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={[styles.exportBtn, { backgroundColor: colors.primary, opacity: exporting ? 0.7 : 1 }]}
+                onPress={handleExport}
+                disabled={exporting}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.exportBtnText, { color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }]}>
+                  {exporting ? "…" : "Export"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </Animated.View>
       </ScrollView>
     </View>
@@ -402,4 +454,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   saveBtnText: { fontSize: 16 },
+  exportRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  exportInfo: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
+  exportBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  exportBtnText: { fontSize: 14 },
 });

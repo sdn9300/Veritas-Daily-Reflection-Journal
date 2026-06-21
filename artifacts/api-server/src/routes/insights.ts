@@ -125,4 +125,72 @@ router.post("/insights/transcribe", async (req, res) => {
   }
 });
 
+router.post("/insights/recommendations", async (req, res) => {
+  const { mood, content, reflection, prompt: entryPrompt } = req.body as {
+    mood: string;
+    content: string;
+    reflection: string;
+    prompt: string;
+  };
+
+  if (!mood && !content && !reflection) {
+    res.status(400).json({ error: "No entry data provided" });
+    return;
+  }
+
+  const systemPrompt = `You are a warm, practical life coach. A user has just finished their daily journal entry.
+Based on their mood and what they wrote, give them 3 specific, actionable recommendations to make tomorrow better.
+
+RULES:
+- Be concrete and personal — reference what they actually wrote.
+- Each recommendation must include a specific action, not vague advice.
+- Tone: encouraging, direct, warm. Like a trusted friend who gives real advice.
+- If mood is "great" or "good", focus on sustaining momentum and building on what's working.
+- If mood is "okay", "bad", or "awful", focus on relief, small wins, and self-compassion.
+
+Respond with JSON ONLY (no markdown, no code fences):
+{
+  "recommendations": [
+    { "emoji": "🎯", "title": "Short action title (4-6 words)", "description": "2 sentences: what to do and why it will help based on what they wrote." },
+    { "emoji": "💤", "title": "Short action title", "description": "2 sentences." },
+    { "emoji": "🌱", "title": "Short action title", "description": "2 sentences." }
+  ]
+}`;
+
+  const userMessage = [
+    `Mood today: ${mood}`,
+    content ? `Their thoughts: ${content}` : null,
+    reflection ? `Their reflection (prompt was "${entryPrompt}"): ${reflection}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 700,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "";
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      req.log.error({ raw }, "Failed to parse recommendations JSON");
+      res.status(500).json({ error: "Failed to parse AI response" });
+      return;
+    }
+
+    res.json(parsed);
+  } catch (err) {
+    req.log.error({ err }, "Recommendations request failed");
+    res.status(500).json({ error: "AI service unavailable" });
+  }
+});
+
 export default router;
