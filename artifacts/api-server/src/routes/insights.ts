@@ -1,5 +1,5 @@
 import { Router } from "express";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 
 const router = Router();
 
@@ -96,6 +96,32 @@ Respond with a JSON object ONLY (no markdown, no code fences) with exactly this 
   } catch (err) {
     req.log.error({ err }, "OpenAI request failed");
     res.status(500).json({ error: "AI service unavailable" });
+  }
+});
+
+router.post("/insights/transcribe", async (req, res) => {
+  const { audio, mimeType } = req.body as { audio: string; mimeType: string };
+
+  if (!audio) {
+    res.status(400).json({ error: "No audio provided" });
+    return;
+  }
+
+  try {
+    const buffer = Buffer.from(audio, "base64");
+    const ext = mimeType?.includes("mp4") || mimeType?.includes("m4a") ? "m4a" : "wav";
+    const file = await toFile(buffer, `recording.${ext}`, { type: mimeType ?? "audio/m4a" });
+
+    const transcription = await openai.audio.transcriptions.create({
+      file,
+      model: "whisper-large-v3-turbo",
+      response_format: "json",
+    });
+
+    res.json({ text: transcription.text ?? "" });
+  } catch (err) {
+    req.log.error({ err }, "Transcription failed");
+    res.status(500).json({ error: "Transcription failed" });
   }
 });
 

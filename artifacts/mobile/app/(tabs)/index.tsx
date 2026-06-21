@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,12 +13,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  FadeInDown,
-  FadeInUp,
-} from "react-native-reanimated";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import { MoodPicker } from "@/components/MoodPicker";
+import { VoiceButton } from "@/components/VoiceButton";
 import type { Mood } from "@/context/JournalContext";
 import { useJournal } from "@/context/JournalContext";
 import { useColors } from "@/hooks/useColors";
@@ -61,6 +59,14 @@ export default function TodayScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
+  const appendContent = useCallback((text: string) => {
+    setContent((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+  }, []);
+
+  const appendReflection = useCallback((text: string) => {
+    setReflection((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text));
+  }, []);
+
   const isEdited =
     content !== (todayEntry?.content ?? "") ||
     reflection !== (todayEntry?.reflection ?? "") ||
@@ -73,17 +79,19 @@ export default function TodayScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.scroll, { paddingTop: topPad + 20, paddingBottom: botPad + 120 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: topPad + 20, paddingBottom: botPad + 120 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={FadeInDown.duration(400).delay(0)}>
           <View style={styles.headerRow}>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={[styles.greeting, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
                 {getGreeting()}
               </Text>
@@ -107,7 +115,7 @@ export default function TodayScreen() {
         <Animated.View entering={FadeInDown.duration(400).delay(80)}>
           <View style={[styles.promptCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Text style={[styles.promptLabel, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>
-              Today's Prompt
+              TODAY'S PROMPT
             </Text>
             <Text style={[styles.promptText, { color: colors.foreground, fontFamily: "Merriweather_400Regular" }]}>
               {prompt}
@@ -120,9 +128,12 @@ export default function TodayScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-            Your thoughts
-          </Text>
+          <View style={styles.labelRow}>
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
+              YOUR THOUGHTS
+            </Text>
+            <VoiceButton onTranscript={appendContent} />
+          </View>
           <TextInput
             style={[
               styles.textArea,
@@ -143,9 +154,12 @@ export default function TodayScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(260)} style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
-            Reflection
-          </Text>
+          <View style={styles.labelRow}>
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
+              REFLECTION
+            </Text>
+            <VoiceButton onTranscript={appendReflection} />
+          </View>
           <TextInput
             style={[
               styles.textArea,
@@ -174,7 +188,7 @@ export default function TodayScreen() {
           {
             backgroundColor: colors.background,
             borderTopColor: colors.border,
-            paddingBottom: Math.max(insets.bottom, 16) + (Platform.OS === "web" ? 34 : 0),
+            paddingBottom: Math.max(insets.bottom, 16) + botPad,
           },
         ]}
       >
@@ -190,7 +204,10 @@ export default function TodayScreen() {
           disabled={saving}
           activeOpacity={0.8}
         >
-          <Text style={[styles.saveBtnText, { color: isEdited || !todayEntry ? colors.primaryForeground : colors.mutedForeground, fontFamily: "Inter_600SemiBold" }]}>
+          <Text style={[styles.saveBtnText, {
+            color: isEdited || !todayEntry ? colors.primaryForeground : colors.mutedForeground,
+            fontFamily: "Inter_600SemiBold",
+          }]}>
             {saving ? "Saving…" : todayEntry ? (isEdited ? "Update Entry" : "Saved") : "Save Entry"}
           </Text>
         </TouchableOpacity>
@@ -200,36 +217,23 @@ export default function TodayScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    paddingHorizontal: 20,
-  },
+  scroll: { paddingHorizontal: 20 },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 24,
   },
-  greeting: {
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  date: {
-    fontSize: 22,
-    lineHeight: 30,
-  },
+  greeting: { fontSize: 15, marginBottom: 2 },
+  date: { fontSize: 22, lineHeight: 30 },
   streak: {
     alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 12,
   },
-  streakNum: {
-    fontSize: 20,
-    lineHeight: 24,
-  },
-  streakLabel: {
-    fontSize: 11,
-  },
+  streakNum: { fontSize: 20, lineHeight: 24 },
+  streakLabel: { fontSize: 11 },
   promptCard: {
     borderRadius: 14,
     borderWidth: 1,
@@ -237,24 +241,15 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 24,
   },
-  promptLabel: {
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: "uppercase",
+  promptLabel: { fontSize: 11, letterSpacing: 1 },
+  promptText: { fontSize: 16, lineHeight: 25 },
+  section: { marginBottom: 20, gap: 8 },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  promptText: {
-    fontSize: 16,
-    lineHeight: 25,
-  },
-  section: {
-    marginBottom: 20,
-    gap: 8,
-  },
-  sectionLabel: {
-    fontSize: 13,
-    letterSpacing: 0.3,
-    textTransform: "uppercase",
-  },
+  sectionLabel: { fontSize: 13, letterSpacing: 0.3 },
   textArea: {
     borderRadius: 14,
     borderWidth: 1.5,
@@ -263,9 +258,7 @@ const styles = StyleSheet.create({
     lineHeight: 25,
     minHeight: 130,
   },
-  reflectionArea: {
-    minHeight: 110,
-  },
+  reflectionArea: { minHeight: 110 },
   saveBar: {
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -276,7 +269,5 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: "center",
   },
-  saveBtnText: {
-    fontSize: 16,
-  },
+  saveBtnText: { fontSize: 16 },
 });
