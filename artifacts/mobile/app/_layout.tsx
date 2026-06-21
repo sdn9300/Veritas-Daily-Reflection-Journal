@@ -10,6 +10,7 @@ import {
   Merriweather_700Bold,
 } from "@expo-google-fonts/merriweather";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
@@ -22,6 +23,16 @@ import { JournalProvider } from "@/context/JournalContext";
 
 SplashScreen.preventAutoHideAsync();
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
@@ -29,6 +40,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="entry/[id]" options={{ headerShown: false, presentation: "card" }} />
+      <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

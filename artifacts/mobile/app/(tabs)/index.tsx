@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import {
   Alert,
@@ -29,6 +30,7 @@ const prompt = getDailyPrompt(today);
 export default function TodayScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { todayEntry, saveEntry, streak } = useJournal();
 
   const [content, setContent] = useState(todayEntry?.content ?? "");
@@ -109,6 +111,13 @@ export default function TodayScreen() {
                 </Text>
               </View>
             )}
+            <TouchableOpacity
+              onPress={() => router.push("/settings")}
+              hitSlop={10}
+              style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
+              <Feather name="settings" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
           </View>
         </Animated.View>
 
@@ -234,6 +243,15 @@ const styles = StyleSheet.create({
   },
   streakNum: { fontSize: 20, lineHeight: 24 },
   streakLabel: { fontSize: 11 },
+  settingsBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
   promptCard: {
     borderRadius: 14,
     borderWidth: 1,
