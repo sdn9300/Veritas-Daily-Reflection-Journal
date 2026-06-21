@@ -5,6 +5,7 @@ const router = Router();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
 interface JournalEntry {
@@ -53,7 +54,7 @@ Respond with a JSON object (no markdown, no code blocks) with exactly this struc
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       max_tokens: 1200,
       messages: [
         { role: "system", content: systemPrompt },
