@@ -1,6 +1,6 @@
 # Veritas Daily Reflection Journal
 
-Veritas Daily Reflection Journal is a monorepo for a journaling app built around daily reflection, mood tracking, habit support, gratitude notes, time capsules, and AI-assisted insights.
+**Veritas** is a local-first mobile journaling app for daily reflection, mood tracking, habit building, and gratitude. Voice input, AI-generated insights, weekly summaries, and year reviews are powered by an Express backend with OpenAI. Built with Expo Router, React Native, Drizzle ORM, and pnpm workspaces.
 
 The workspace includes:
 - a mobile app built with Expo Router and React Native
@@ -56,7 +56,7 @@ Core experiences include:
 ## Packages
 
 ### `artifacts/mobile`
-The main journaling app. It uses Expo Router and a tab-based experience with:
+The main journaling app, built using the [Replit mobile app](https://replit.com/mobile). It uses Expo Router and a tab-based experience with:
 - Today
 - Journal
 - Jar
@@ -134,6 +134,37 @@ pnpm --filter @workspace/api-spec run codegen
 pnpm --filter @workspace/scripts run hello
 ```
 
+## Workflow
+
+### Fresh clone
+1. Install dependencies with pnpm install.
+2. Make sure DATABASE_URL is available before touching the DB package or API server.
+3. Run pnpm --filter @workspace/db run push to sync the database schema.
+4. Run pnpm --filter @workspace/api-spec run codegen if the OpenAPI contract changed or if generated clients are out of date.
+5. Start the app you need in a separate terminal:
+   - pnpm --filter @workspace/api-server run dev for the backend
+   - pnpm --filter @workspace/mobile run dev for the Expo app
+   - pnpm --filter @workspace/mockup-sandbox run dev for UI prototyping
+
+### Daily development loop
+- Edit the mobile app in rtifacts/mobile when changing journaling, habits, reminders, or local storage behavior.
+- Edit the API server in rtifacts/api-server when changing insights, transcription, or any server-side prompt logic.
+- Edit lib/api-spec/openapi.yaml first when changing request or response shapes, then regenerate lib/api-client-react and lib/api-zod.
+- Edit lib/db/src/schema when changing persisted data, then push the schema with pnpm --filter @workspace/db run push.
+- Run pnpm run typecheck before committing if you touched shared types, the API spec, or generated code.
+
+### Mobile build and preview
+- pnpm --filter @workspace/mobile run build creates the static Expo output under rtifacts/mobile/static-build.
+- pnpm --filter @workspace/mobile run serve serves that static build for preview.
+- The build script uses BASE_PATH, REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN to derive the deployment URL.
+
+### Backend workflow
+- pnpm --filter @workspace/api-server run build bundles the server into rtifacts/api-server/dist.
+- pnpm --filter @workspace/api-server run start runs the bundled server.
+- pnpm --filter @workspace/api-server run dev rebuilds first and then starts the server.
+
+### Automation
+- scripts/post-merge.sh runs pnpm install --frozen-lockfile and then pnpm --filter db push after merges in environments that use the hook.
 ## Environment Variables
 
 ### Required for the database
