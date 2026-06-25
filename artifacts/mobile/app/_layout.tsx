@@ -20,6 +20,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GratitudeProvider } from "@/context/GratitudeContext";
+import { HabitProvider } from "@/context/HabitContext";
 import { JournalProvider } from "@/context/JournalContext";
 import { TimeCapsuleProvider } from "@/context/TimeCapsuleContext";
 
@@ -74,13 +75,15 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <JournalProvider>
             <GratitudeProvider>
-              <TimeCapsuleProvider>
-                <GestureHandlerRootView>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </TimeCapsuleProvider>
+              <HabitProvider>
+                <TimeCapsuleProvider>
+                  <GestureHandlerRootView>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </TimeCapsuleProvider>
+              </HabitProvider>
             </GratitudeProvider>
           </JournalProvider>
         </QueryClientProvider>

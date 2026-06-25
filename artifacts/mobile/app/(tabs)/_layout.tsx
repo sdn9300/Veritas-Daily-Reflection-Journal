@@ -28,6 +28,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "magnifyingglass", selected: "magnifyingglass" }} />
         <Label>Search</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="habits">
+        <Icon sf={{ default: "checkmark.circle", selected: "checkmark.circle.fill" }} />
+        <Label>Habits</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="insights">
         <Icon sf={{ default: "sparkles", selected: "sparkles" }} />
         <Label>Insights</Label>
@@ -119,6 +123,18 @@ function ClassicTabLayout() {
               <SymbolView name="magnifyingglass" tintColor={color} size={22} />
             ) : (
               <Feather name="search" size={20} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="habits"
+        options={{
+          title: "Habits",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="checkmark.circle.fill" tintColor={color} size={22} />
+            ) : (
+              <Feather name="check-circle" size={20} color={color} />
             ),
         }}
       />
