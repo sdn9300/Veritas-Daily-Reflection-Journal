@@ -48,3 +48,14 @@ Thumbs.db
 .cache/
 .local/
 .agents/
+
+# Secrets and generated artifact outputs
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+artifacts/**/.replit-artifact/
+artifacts/**/src/.generated/
