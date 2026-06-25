@@ -62,3 +62,4 @@ replit.md
 *.crt
 artifacts/**/.replit-artifact/
 artifacts/**/src/.generated/
+artifacts/
