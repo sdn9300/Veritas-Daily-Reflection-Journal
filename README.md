@@ -1,6 +1,6 @@
 # Veritas Daily Reflection Journal
 
-**Veritas** is a local-first mobile journaling app for daily reflection, mood tracking, habit building, and gratitude. Voice input, AI-generated insights, weekly summaries, and year reviews are powered by an Express backend with OpenAI. Built with Expo Router, React Native, Drizzle ORM, and pnpm workspaces.
+**Veritas** is a local-first mobile journaling app for daily reflection, mood tracking, habit building, and gratitude. Voice input, AI-generated insights, weekly summaries, and year reviews are powered by an Express backend with OpenAI. Built with Expo Router, React Native, Drizzle ORM, and pnpm workspaces. Developed entirely within the Replit cloud IDE, then migrated the codebase to a dedicated GitHub repository for version control and public distribution.
 
 The workspace includes:
 - a mobile app built with Expo Router and React Native
@@ -45,6 +45,7 @@ Core experiences include:
 
 - pnpm workspaces
 - TypeScript 5.9
+- **CI/CD**: Configured GitHub Actions workflows (triggered on push/merge to the GitHub repository) to run `pnpm install --frozen-lockfile`, execute DB migrations, and regenerate API clients automatically.
 - Expo Router, React Native, and React Query
 - Express 5 with Pino logging and CORS
 - OpenAI-compatible chat and transcription calls through the API server
