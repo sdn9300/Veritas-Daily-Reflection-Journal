@@ -46,6 +46,7 @@ Thumbs.db
 
 # Replit
 .replit
+.replitignore
 .npmrc
 replit.md
 .cache/
