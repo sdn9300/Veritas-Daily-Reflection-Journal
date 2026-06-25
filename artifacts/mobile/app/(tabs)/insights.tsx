@@ -13,6 +13,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
+import { useRouter } from "expo-router";
+
 import { MoodChart, getMoodAverage, getMoodTrend } from "@/components/MoodChart";
 import { useJournal } from "@/context/JournalContext";
 import { useColors } from "@/hooks/useColors";
@@ -64,6 +66,8 @@ export default function InsightsScreen() {
   const { entries } = useJournal();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const router = useRouter();
 
   const [summary, setSummary] = useState<WeeklySummary | null>(null);
   const [loading, setLoading] = useState(false);
@@ -127,6 +131,27 @@ export default function InsightsScreen() {
             ? `${last30.length} entr${last30.length === 1 ? "y" : "ies"} in the past 30 days`
             : "No entries yet — start journaling today"}
         </Text>
+      </Animated.View>
+
+      <Animated.View entering={FadeInDown.duration(400).delay(40)}>
+        <TouchableOpacity
+          style={[styles.yearReviewCard, { backgroundColor: colors.primary, }]}
+          onPress={() => router.push("/year-review")}
+          activeOpacity={0.85}
+        >
+          <View style={styles.yearReviewLeft}>
+            <Text style={[styles.yearReviewEyebrow, { color: colors.primaryForeground + "AA", fontFamily: "Inter_500Medium" }]}>
+              {new Date().getFullYear()} YEAR IN REVIEW
+            </Text>
+            <Text style={[styles.yearReviewTitle, { color: colors.primaryForeground, fontFamily: "Merriweather_700Bold" }]}>
+              How was your year?
+            </Text>
+            <Text style={[styles.yearReviewSub, { color: colors.primaryForeground + "BB", fontFamily: "Inter_400Regular" }]}>
+              AI reads your entries and writes a personal reflection
+            </Text>
+          </View>
+          <Text style={styles.yearReviewIcon}>✨</Text>
+        </TouchableOpacity>
       </Animated.View>
 
       {last30.length > 0 && (
@@ -327,6 +352,20 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { paddingHorizontal: 20 },
   title: { fontSize: 28, marginBottom: 4 },
+  yearReviewCard: {
+    borderRadius: 18,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  yearReviewLeft: { flex: 1, gap: 4 },
+  yearReviewEyebrow: { fontSize: 10, letterSpacing: 1.2 },
+  yearReviewTitle: { fontSize: 22 },
+  yearReviewSub: { fontSize: 13, lineHeight: 20, marginTop: 2 },
+  yearReviewIcon: { fontSize: 36, marginLeft: 12 },
   subtitle: { fontSize: 14, marginBottom: 20 },
   chartCard: {
     borderRadius: 16,

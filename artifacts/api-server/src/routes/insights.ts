@@ -193,6 +193,66 @@ Respond with JSON ONLY (no markdown, no code fences):
   }
 });
 
+router.post("/insights/year-review", async (req, res) => {
+  const { year, entries } = req.body as {
+    year: number;
+    entries: Array<{ date: string; mood: string; snippet: string }>;
+  };
+
+  if (!entries || entries.length === 0) {
+    res.status(400).json({ error: "No entries provided" });
+    return;
+  }
+
+  const entriesText = entries
+    .map((e) => `[${e.date}] Mood: ${e.mood}. ${e.snippet}`)
+    .join("\n");
+
+  const systemPrompt = `You are a warm, empathetic journaling companion writing a year-end review for someone who has been journaling all year.
+Your tone is personal, reflective, and encouraging — like a wise friend who has been listening all year.
+Write as if speaking directly to them (use "you", "your").
+
+Based on the journal entries provided, write their ${year} Year in Review.
+
+Respond with JSON ONLY (no markdown, no code fences):
+{
+  "narrative": "2-3 heartfelt paragraphs narrating their year. Reference actual moods and themes you see in the entries. Be specific, not generic.",
+  "themes": ["Theme 1", "Theme 2", "Theme 3", "Theme 4", "Theme 5"],
+  "highlights": [
+    { "period": "Month or season", "note": "A specific standout observation from that period." },
+    { "period": "Month or season", "note": "..." },
+    { "period": "Month or season", "note": "..." }
+  ],
+  "growth": "1-2 sentences about how you can see them growing over the year based on their entries.",
+  "encouragement": "A warm closing paragraph for the year ahead — hopeful, grounded, specific to what they've been through."
+}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 1200,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Year: ${year}\n\nJournal entries:\n${entriesText}` },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      req.log.error({ raw }, "Failed to parse year-review JSON");
+      res.status(500).json({ error: "Failed to parse AI response" });
+      return;
+    }
+    res.json({ review: parsed });
+  } catch (err) {
+    req.log.error({ err }, "Year review request failed");
+    res.status(500).json({ error: "AI service unavailable" });
+  }
+});
+
 router.post("/insights/playlist", async (req, res) => {
   const { mood, content, reflection } = req.body as {
     mood: string;

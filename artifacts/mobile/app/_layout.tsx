@@ -45,6 +45,7 @@ function RootLayoutNav() {
       <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="time-capsule" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="chapters" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="year-review" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
