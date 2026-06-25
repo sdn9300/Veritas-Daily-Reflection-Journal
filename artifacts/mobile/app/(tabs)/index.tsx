@@ -17,10 +17,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 import { DayRecommendations } from "@/components/DayRecommendations";
+import { MoodPlaylist } from "@/components/MoodPlaylist";
 import { MoodPicker } from "@/components/MoodPicker";
+import { OnThisDay } from "@/components/OnThisDay";
 import { VoiceButton } from "@/components/VoiceButton";
 import type { Mood } from "@/context/JournalContext";
 import { useJournal } from "@/context/JournalContext";
+import { useTimeCapsule } from "@/context/TimeCapsuleContext";
 import { useColors } from "@/hooks/useColors";
 import { formatDisplayDate, getGreeting, getTodayString } from "@/utils/dates";
 import { getDailyPrompt } from "@/utils/prompts";
@@ -33,6 +36,7 @@ export default function TodayScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { todayEntry, saveEntry, streak } = useJournal();
+  const { pendingReveals } = useTimeCapsule();
 
   const [content, setContent] = useState(todayEntry?.content ?? "");
   const [reflection, setReflection] = useState(todayEntry?.reflection ?? "");
@@ -113,6 +117,13 @@ export default function TodayScreen() {
               </View>
             )}
             <TouchableOpacity
+              onPress={() => router.push("/time-capsule")}
+              hitSlop={10}
+              style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
+              <Feather name="clock" size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => router.push("/settings")}
               hitSlop={10}
               style={[styles.settingsBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -121,6 +132,31 @@ export default function TodayScreen() {
             </TouchableOpacity>
           </View>
         </Animated.View>
+
+        {pendingReveals.length > 0 && (
+          <Animated.View entering={FadeInDown.duration(350)} style={{ marginBottom: 16 }}>
+            <TouchableOpacity
+              style={[styles.capsuleBanner, { backgroundColor: colors.primary + "18", borderColor: colors.primary }]}
+              onPress={() => router.push("/time-capsule")}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: 22 }}>📬</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colors.primary, fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+                  {pendingReveals.length === 1 ? "A sealed letter is ready to open" : `${pendingReveals.length} sealed letters are ready`}
+                </Text>
+                <Text style={{ color: colors.mutedForeground, fontFamily: "Inter_400Regular", fontSize: 12, marginTop: 2 }}>
+                  Tap to open your message from the past
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={18} color={colors.primary} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        <View style={{ marginBottom: 20 }}>
+          <OnThisDay />
+        </View>
 
         <Animated.View entering={FadeInDown.duration(400).delay(80)}>
           <View style={[styles.promptCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -200,6 +236,16 @@ export default function TodayScreen() {
             />
           </Animated.View>
         )}
+
+        {todayEntry && !isEdited && (
+          <Animated.View entering={FadeInDown.duration(400).delay(360)} style={styles.section}>
+            <MoodPlaylist
+              mood={todayEntry.mood}
+              content={todayEntry.content}
+              reflection={todayEntry.reflection}
+            />
+          </Animated.View>
+        )}
       </ScrollView>
 
       <Animated.View
@@ -263,6 +309,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,
+  },
+  capsuleBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 14,
   },
   promptCard: {
     borderRadius: 14,

@@ -20,6 +20,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "book.closed", selected: "book.closed.fill" }} />
         <Label>Journal</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="jar">
+        <Icon sf={{ default: "heart", selected: "heart.fill" }} />
+        <Label>Jar</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search">
         <Icon sf={{ default: "magnifyingglass", selected: "magnifyingglass" }} />
         <Label>Search</Label>
@@ -91,6 +95,18 @@ function ClassicTabLayout() {
               <SymbolView name="book.closed" tintColor={color} size={22} />
             ) : (
               <Feather name="book-open" size={20} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="jar"
+        options={{
+          title: "Jar",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="heart.fill" tintColor={color} size={22} />
+            ) : (
+              <Feather name="heart" size={20} color={color} />
             ),
         }}
       />

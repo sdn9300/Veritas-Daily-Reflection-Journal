@@ -19,7 +19,9 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GratitudeProvider } from "@/context/GratitudeContext";
 import { JournalProvider } from "@/context/JournalContext";
+import { TimeCapsuleProvider } from "@/context/TimeCapsuleContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +43,8 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="entry/[id]" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="settings" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="time-capsule" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="chapters" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
@@ -68,11 +72,15 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <JournalProvider>
-            <GestureHandlerRootView>
-              <KeyboardProvider>
-                <RootLayoutNav />
-              </KeyboardProvider>
-            </GestureHandlerRootView>
+            <GratitudeProvider>
+              <TimeCapsuleProvider>
+                <GestureHandlerRootView>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </TimeCapsuleProvider>
+            </GratitudeProvider>
           </JournalProvider>
         </QueryClientProvider>
       </ErrorBoundary>

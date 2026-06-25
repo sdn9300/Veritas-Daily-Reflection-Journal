@@ -1,10 +1,13 @@
 import { Feather } from "@expo/vector-icons";
-import React, { useMemo } from "react";
+import { useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,16 +33,19 @@ function getDaysElapsedThisMonth(): number {
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { entries, streak, totalEntries } = useJournal();
+  const router = useRouter();
+  const { entries, streak, totalEntries, chapters } = useJournal();
+  const [chapterFilter, setChapterFilter] = useState<string | null>(null);
 
   const topPad = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
   const botPad = Platform.OS === "web" ? 34 : 0;
 
   const today = getTodayString();
-  const pastEntries = useMemo(
-    () => entries.filter((e) => e.date !== today),
-    [entries, today]
-  );
+  const pastEntries = useMemo(() => {
+    const noToday = entries.filter((e) => e.date !== today);
+    if (!chapterFilter) return noToday;
+    return noToday.filter((e) => e.chapter === chapterFilter);
+  }, [entries, today, chapterFilter]);
 
   const currentMonthEntries = useMemo(() => getCurrentMonthEntries(entries), [entries]);
   const daysElapsed = getDaysElapsedThisMonth();
@@ -62,9 +68,62 @@ export default function HistoryScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <Text style={[styles.title, { color: colors.foreground, fontFamily: "Merriweather_700Bold" }]}>
-              Journal
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={[styles.title, { color: colors.foreground, fontFamily: "Merriweather_700Bold" }]}>
+                Journal
+              </Text>
+              <TouchableOpacity
+                style={[styles.chaptersBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={() => router.push("/chapters")}
+                activeOpacity={0.8}
+              >
+                <Feather name="folder" size={14} color={colors.primary} />
+                <Text style={[styles.chaptersBtnText, { color: colors.primary, fontFamily: "Inter_600SemiBold" }]}>
+                  Chapters
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {chapters.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsRow}
+                style={{ marginBottom: 16 }}
+              >
+                <TouchableOpacity
+                  style={[styles.filterChip, {
+                    backgroundColor: !chapterFilter ? colors.primary : colors.surface,
+                    borderColor: !chapterFilter ? colors.primary : colors.border,
+                  }]}
+                  onPress={() => setChapterFilter(null)}
+                >
+                  <Text style={[styles.filterChipText, {
+                    color: !chapterFilter ? colors.primaryForeground : colors.foreground,
+                    fontFamily: !chapterFilter ? "Inter_600SemiBold" : "Inter_400Regular",
+                  }]}>
+                    All entries
+                  </Text>
+                </TouchableOpacity>
+                {chapters.map((ch) => (
+                  <TouchableOpacity
+                    key={ch}
+                    style={[styles.filterChip, {
+                      backgroundColor: chapterFilter === ch ? colors.primary : colors.surface,
+                      borderColor: chapterFilter === ch ? colors.primary : colors.border,
+                    }]}
+                    onPress={() => setChapterFilter(ch)}
+                  >
+                    <Text style={[styles.filterChipText, {
+                      color: chapterFilter === ch ? colors.primaryForeground : colors.foreground,
+                      fontFamily: chapterFilter === ch ? "Inter_600SemiBold" : "Inter_400Regular",
+                    }]}>
+                      📁 {ch}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
 
             <View style={styles.statsRow}>
               <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -142,7 +201,31 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { paddingHorizontal: 20 },
-  title: { fontSize: 28, marginBottom: 20 },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  title: { fontSize: 28 },
+  chaptersBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  chaptersBtnText: { fontSize: 13 },
+  chipsRow: { gap: 8, paddingRight: 4 },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  filterChipText: { fontSize: 13 },
   statsRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
   statCard: {
     flex: 1,

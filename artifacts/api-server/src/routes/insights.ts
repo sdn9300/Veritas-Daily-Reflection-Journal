@@ -193,4 +193,64 @@ Respond with JSON ONLY (no markdown, no code fences):
   }
 });
 
+router.post("/insights/playlist", async (req, res) => {
+  const { mood, content, reflection } = req.body as {
+    mood: string;
+    content: string;
+    reflection: string;
+  };
+
+  const systemPrompt = `You are a music curator who deeply understands emotions and human experiences.
+Based on the user's mood and journal entry, suggest 5 songs that resonate with their emotional state today.
+
+RULES:
+- Pick real, well-known songs (not obscure tracks) that genuinely match the mood and themes in the entry.
+- Mix genres — don't pick 5 similar songs.
+- The "reason" should be personal and specific to what they wrote — not a generic description of the song.
+- If mood is negative, choose songs that offer comfort, understanding, or gentle uplift — not wallowing.
+- If mood is positive, choose songs that celebrate or energize.
+
+Respond with JSON ONLY (no markdown, no code fences):
+{
+  "songs": [
+    { "emoji": "🎵", "title": "Song Title", "artist": "Artist Name", "reason": "One sentence connecting this song to what they wrote." },
+    { "emoji": "🎸", "title": "Song Title", "artist": "Artist Name", "reason": "One sentence." },
+    { "emoji": "🎹", "title": "Song Title", "artist": "Artist Name", "reason": "One sentence." },
+    { "emoji": "🥁", "title": "Song Title", "artist": "Artist Name", "reason": "One sentence." },
+    { "emoji": "🎷", "title": "Song Title", "artist": "Artist Name", "reason": "One sentence." }
+  ]
+}`;
+
+  const userMessage = [
+    `Mood: ${mood}`,
+    content ? `Journal thoughts: ${content}` : null,
+    reflection ? `Reflection: ${reflection}` : null,
+  ].filter(Boolean).join("\n");
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 600,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content ?? "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      req.log.error({ raw }, "Failed to parse playlist JSON");
+      res.status(500).json({ error: "Failed to parse AI response" });
+      return;
+    }
+    res.json(parsed);
+  } catch (err) {
+    req.log.error({ err }, "Playlist request failed");
+    res.status(500).json({ error: "AI service unavailable" });
+  }
+});
+
 export default router;
