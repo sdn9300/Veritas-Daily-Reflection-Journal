@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Daily Journal",
-    "slug": "mobile",
+    "name": "Veritas",
+    "slug": "veritas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "veritas",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -14,9 +14,12 @@
       "backgroundColor": "#F9F5F0"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.veritas.app"
     },
-    "android": {},
+    "android": {
+      "package": "com.veritas.app"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
